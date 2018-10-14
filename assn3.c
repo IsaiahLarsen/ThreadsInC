@@ -28,13 +28,13 @@ void * thread_func(void *p){
 	int i = 0;
 	int sum;
 	int* answers = malloc(pd->count * sizeof(int));
-
+	printf("Received data starting process...\n");
 	for(int k = 0; k < pd->count; k+=3){
 		sum = pd->nums[k] * pd->nums[k+1] * pd->nums[k+2];
 		answers[i] = sum;
 		i++;
 	}
-
+	printf("Calculations complete returning answers...\n");
 	return answers;
 }
 
@@ -55,24 +55,31 @@ int main(int argc, char *argv[]){
 			return -1;
 		}else{
 			while(fscanf(fptr, "%d%d%d", &d.nums[i],&d.nums[i+1],&d.nums[i+2]) == 3){
+				printf("Main thread read  %d %d %d \n", d.nums[i],d.nums[i+1],d.nums[i+2]);
 				i+=3;
 				d.count += 3;
 			}
-
+			printf("Passing input to another thread...\n");
 			pthread_create(&thandle, NULL, thread_func, &d);
 		}
 	}else{//read from stdin
 		while(scanf("%d%d%d", &d.nums[i],&d.nums[i+1],&d.nums[i+2]) == 3){
+			printf("Main thread read  %d %d %d\n", d.nums[i],d.nums[i+1],d.nums[i+2]);
 			i+=3;
+			d.count += 3;
 		}
-
+		printf("Passing input to another thread...\n");
 		pthread_create(&thandle, NULL, thread_func, &d);
 	}
 	void *retptr;
 	pthread_join(thandle, &retptr);//like wait
-
-	printf("result from child is %d\n", *(int *)retptr);
-
+	int *st = (int *)retptr;
+	int ite = 0;
+	printf("Results from thread 2 are in ....\n");
+	for(int i = 0; i < (d.count/3); i++){
+		printf("The result of %d * %d * %d = %d\n",d.nums[ite], d.nums[ite +1],d.nums[ite+2], st[i]);
+		ite += 3;
+	}
 	//if you allocate, free up
 	free(retptr);
 
